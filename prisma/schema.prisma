@@ -1,0 +1,350 @@
+// This is your current schema.prisma file
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRoleEnum {
+  USER
+  ADMIN
+  SUPERADMIN
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+model User {
+  id                               String             @id @default(auto()) @map("_id") @db.ObjectId
+  name                             String
+  email                            String             @unique
+  password                         String?
+
+  role                             UserRoleEnum       @default(USER)
+  status                           UserStatus         @default(ACTIVE)
+  image                            String?
+  otp                              String?
+  otpExpiry                        DateTime?
+  notification                     Boolean            @default(true)
+  fcmToken                         String?
+  birthday                         String?
+  age                              Int?
+  number                           String?
+  parentName                       String?
+  relation                         String?
+  parentNumber                     String?
+  parentEmail                      String?
+  parentOTP                        String?
+  parentOTPExpiry                  DateTime?
+  isParentEmailVerified            Boolean            @default(true)
+  address                          Json?
+  skill                            String?
+  forgetPasswordToken              String?
+  forgetPasswordTokenExpires       DateTime?
+  goal                             String?
+  focus                            String?
+  isEmailVerified                  Boolean            @default(true)
+  emailVerificationToken           String?
+  emailVerificationTokenExpires    DateTime?
+  language                         String?
+  gender                           Gender             @default(MALE)
+  twoFactor                        Boolean?           @default(false)
+  twoFactorOTP                     String?
+  twoFactorOTPExpires              DateTime?
+
+
+  createdAt                        DateTime           @default(now())
+  updatedAt                        DateTime           @updatedAt
+
+  @@map("users")
+  Notification                     Notification[]
+  SentConnections                  Connection[]       @relation("SentConnections")
+  ReceivedConnections              Connection[]       @relation("ReceivedConnections")
+  Community                        Community[]
+  JobTask                          JobTask[]
+  JobRequest JobRequest[]
+  MyDay MyDay[]
+  ChattingWithAI ChattingWithAI[]
+  MicroGoal MicroGoal[]
+  Task Task[]
+  SentShares TaskShare[] @relation("SentShares")
+  ReceivedShares TaskShare[] @relation("ReceivedShares")
+  UserSubscription UserSubscription[]
+
+ 
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  BLOCKED
+}
+
+
+model Connection {
+  id             String           @id @default(auto()) @map("_id") @db.ObjectId
+  senderId       String           @db.ObjectId
+  receiverId     String           @db.ObjectId
+  status         ConnectionStatus @default(PENDING)
+
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  // Relations
+  sender         User             @relation("SentConnections", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver       User             @relation("ReceivedConnections", fields: [receiverId], references: [id], onDelete: Cascade)
+}
+
+enum ConnectionStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+
+model Community {
+  id           String    @id @default(auto()) @map("_id") @db.ObjectId
+  userId       String    @db.ObjectId   // যার কাছে notification যাবে
+  description  String?
+  mind         Int?
+  body         Int?
+  soul         Int?
+  purpose      Int?
+  spirituality Int?
+  isShare      Boolean @default(false)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  // Relation
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+
+model Notification {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId       String   @db.ObjectId   // যার কাছে notification যাবে
+  type         String                 // e.g. "CONNECTION_REQUEST", "CONNECTION_ACCEPTED", "CONNECTION_REJECTED"
+  message      String
+  isRead       Boolean  @default(false)
+
+  createdAt    DateTime @default(now())
+
+  // Relation
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+
+enum IsPaid {
+  Yes
+  No
+
+}
+
+
+model JobTask {
+  id                 String    @id @default(auto()) @map("_id") @db.ObjectId
+  userId             String    @db.ObjectId
+  acceptedUserId  String?        @db.ObjectId
+  title              String
+  city               String
+  description        String
+  zip_code           String
+  state             String
+
+  accurateLocation   Json
+  isPaid             IsPaid   
+  amount             Float?    
+  rejectedUsers      String[]
+  startDate          DateTime
+  endDate            DateTime
+  mobileNumber       String
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+  user               User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  JobRequest JobRequest[]
+}
+
+
+
+enum RequestStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+model JobRequest {
+  id        String        @id @default(auto()) @map("_id") @db.ObjectId
+  jobId     String        @db.ObjectId
+  userId    String        @db.ObjectId
+
+  status    RequestStatus @default(PENDING)
+  feedback  String?
+  rating    Int?
+  isComplete  Boolean   @default(false)
+  createdAt DateTime      @default(now())
+   updatedAt          DateTime  @updatedAt
+
+  job       JobTask       @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+}
+
+
+model MyDay {
+  id        String        @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String        @db.ObjectId
+  title     String
+  description String
+  createdAt DateTime      @default(now())
+  updatedAt          DateTime  @updatedAt
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+
+enum QueryType {
+  voice
+  text
+  
+}
+
+
+model ChattingWithAI {
+  id        String        @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String        @db.ObjectId
+  query_type QueryType
+  user_query String?
+  
+  ai_answer  String?
+
+  createdAt DateTime      @default(now())
+  updatedAt          DateTime  @updatedAt
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+
+model MicroGoal {
+  id        String        @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String        @db.ObjectId
+  mind        Boolean     @default(false)
+  body        Boolean     @default(false)
+  soul        Boolean     @default(false)
+  purpose        Boolean     @default(false)
+  spirituality        Boolean     @default(false)
+  
+
+
+  createdAt DateTime      @default(now())
+  updatedAt          DateTime  @updatedAt
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+
+
+enum IsComplete {
+  complete
+  missing
+  inpogress
+}
+
+
+model Task {
+  id        String        @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String        @db.ObjectId
+  isComplete   IsComplete  @default(inpogress)     
+  title      String
+  goal       String
+  category   String
+  createdAt DateTime      @default(now())
+  updatedAt          DateTime  @updatedAt
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  TaskShare TaskShare[]
+}
+enum TaskRequestStatus {
+  pending
+  accepted
+  rejected
+}
+
+
+model TaskShare {
+  id          String             @id @default(auto()) @map("_id") @db.ObjectId
+  taskId      String             @db.ObjectId
+  senderId    String             @db.ObjectId
+  receiverId  String             @db.ObjectId
+  status      TaskRequestStatus  @default(pending)
+  isComplete  Boolean            @default(false)
+  createdAt   DateTime           @default(now())
+
+  task        Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  sender      User   @relation("SentShares", fields: [senderId], references: [id])
+  receiver    User   @relation("ReceivedShares", fields: [receiverId], references: [id])
+}
+
+
+
+
+// ===================== Subscription System =====================
+
+// Schema (use this, migrate accordingly)
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELLED
+  EXPIRED
+  PENDING
+}
+
+enum BillingPeriod {
+  MONTHLY
+  YEARLY
+  LIFETIME
+}
+
+model SubscriptionPlan {
+  id             String    @id @default(auto()) @map("_id") @db.ObjectId
+  name           String    @unique
+
+  price          Float     @default(0) // human readable price in base currency (e.g. 9.99)
+  currency       String    @default("usd")
+  billingPeriod  BillingPeriod @default(MONTHLY)
+  isPopular      Boolean   @default(false)
+  features       Json
+  benefits       String[]
+  productId      String?   // Stripe product id (nullable for free plans)
+  pricingId      String?   // Stripe price id (nullable for free/lifetime)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+
+  // Relations
+  userSubscriptions UserSubscription[]
+}
+
+
+
+model UserSubscription {
+  id                String     @id @default(auto()) @map("_id") @db.ObjectId
+  userId            String     @db.ObjectId
+  planId            String     @db.ObjectId
+  status            SubscriptionStatus @default(ACTIVE)
+  startDate         DateTime   @default(now())
+  endDate           DateTime?
+  cancelAt          DateTime?
+  paymentMethod     String?    // "stripe", "paypal" etc
+  transactionId     String?    // store payment gateway ID (subscription id / payment id)
+  autoRenew         Boolean    @default(true)
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+
+  // Relations
+  user              User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan              SubscriptionPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, planId], name: "userId_planId_unique")
+}
