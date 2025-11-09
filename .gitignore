@@ -7,3 +7,4 @@ node_modules
 generate-module.ts.env
 dist/
 dist/
+.env.example
