@@ -1,13 +1,14 @@
 // This is your current schema.prisma file
 
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
 generator client {
   provider = "prisma-client-js"
 }
 
-datasource db {
-  provider = "mongodb"
-
-}
 
 enum UserRoleEnum {
   USER
@@ -49,7 +50,7 @@ model User {
   forgetPasswordTokenExpires       DateTime?
   goal                             String?
   focus                            String?
-  isEmailVerified                  Boolean            @default(true)
+  isEmailVerified                  Boolean            @default(false)
   emailVerificationToken           String?
   emailVerificationTokenExpires    DateTime?
   language                         String?
