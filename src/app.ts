@@ -12,7 +12,7 @@ const app: Application = express();
 app.use(
   cors({
     origin: [
- 
+      "https://wwwtonutonmoy12.wixsite.com",  // <-- ADD THIS
       "http://localhost:3000",
       "http://localhost:3001",
       "*",
