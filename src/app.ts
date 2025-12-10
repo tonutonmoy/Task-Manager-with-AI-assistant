@@ -12,10 +12,13 @@ const app: Application = express();
 app.use(
   cors({
     origin: [
-      "*",
-      "http://localhost:3001",
+      "https://wwwtonutonmoy12.wixsite.com",  // <-- ADD THIS
       "http://localhost:3000",
+      "http://localhost:3001",
+      "*",
     ],
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
   })
 );
